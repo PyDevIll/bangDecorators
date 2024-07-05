@@ -24,7 +24,6 @@ class Cache:
             key = str(args) + str(kwargs)
 
             result = self.__get_cached(func.__name__, key)
-
             if not result:
                 result = func(*args, **kwargs)
                 self.__cache_it(result, func.__name__, key)
@@ -33,10 +32,14 @@ class Cache:
 
         @wraps(func)
         async def async_wrapper(*args, **kwargs):
-            # не хочется повторять код из синхронного wrapper'а
-            # нарушается принцип DRY
-            # попробуем выделить общий код в отдельную ф-ию
-            ...
+            key = str(args) + str(kwargs)
+
+            result = self.__get_cached(func.__name__, key)
+            if not result:
+                result = await func(*args, **kwargs)
+                self.__cache_it(result, func.__name__, key)
+
+            return result
 
         if asyncio.iscoroutinefunction(func):
             return async_wrapper
