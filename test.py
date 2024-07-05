@@ -18,6 +18,10 @@ def test_cache():
 
 @pytest.mark.asyncio
 async def test_cache_async():
+    # cache все еще хранит результат вызова MyClass.method() в этом месте, если запускать тесты пачкой
+    # очистим кеш, вызвав 'invalidate' без параметра
+    cache.invalidate()
+    assert len(cache.data) == 0
     assert await async_function(1) == 1
     assert await async_function(1) == 1
     assert len(cache.data) == 1

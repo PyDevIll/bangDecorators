@@ -46,8 +46,12 @@ class Cache:
         else:
             return wrapper
 
-    def invalidate(self, func):
-        del self.data[func.__name__]
+    def invalidate(self, func=None):
+        # чтобы очистить весь кеш, параметр можно опустить
+        if func is None:
+            self.data.clear()
+        else:
+            del self.data[func.__name__]
 
 
 cache = Cache()
