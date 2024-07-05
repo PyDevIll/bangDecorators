@@ -6,28 +6,36 @@ class Cache:
     def __init__(self):
         self.data = {}
 
+    def __get_cached(self, func_name, arg_key):
+        if func_name in self.data:
+            if arg_key in self.data[func_name]:
+                return self.data[func_name][arg_key]
+        return None
+
+    def __cache_it(self, result, func_name, arg_key):
+        if func_name not in self.data:
+            self.data[func_name] = {}
+        self.data[func_name][arg_key] = result
+        return result
+
     def __call__(self, func):
         @wraps(func)
         def wrapper(*args, **kwargs):
-
-            # если в словаре словарей self.data по ключам имени функции и переданным параметрам
-            # находится предвычисленное значение - возвращаем его
-            # key = str(*args) + str(**kwargs)    # 'словарь' **kwargs разворачивается в ключевые параметры для ф-ии str,
-                                                  # а не преобразуется в строку как ожидалось
             key = str(args) + str(kwargs)
-            if func.__name__ in self.data:
-                if key in self.data[func.__name__]:
-                    return self.data[func.__name__][key]
 
-            # иначе - вычисляем значение, сохраняем его в data и возвращаем
-            result = func(*args, **kwargs)
-            if func.__name__ not in self.data:
-                self.data[func.__name__] = {}
-            self.data[func.__name__][key] = result
+            result = self.__get_cached(func.__name__, key)
+
+            if not result:
+                result = func(*args, **kwargs)
+                self.__cache_it(result, func.__name__, key)
+
             return result
 
         @wraps(func)
         async def async_wrapper(*args, **kwargs):
+            # не хочется повторять код из синхронного wrapper'а
+            # нарушается принцип DRY
+            # попробуем выделить общий код в отдельную ф-ию
             ...
 
         if asyncio.iscoroutinefunction(func):
